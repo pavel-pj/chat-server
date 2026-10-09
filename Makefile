@@ -17,6 +17,4 @@ generate-chat-api:
 
 server-up:
 	go run cmd/grpc_server/main.go
-	
-client:
-	go run cmd/grpc_client/main.go	
+ 

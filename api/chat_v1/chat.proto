@@ -13,13 +13,10 @@ service ChatV1 {
     rpc Delete(DeleteRequest) returns (DeleteResponse);
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
   }
-
- 
  
 
 message ChatInfo {
-    int64 id = 1;
-    repeated string usernames = 2;
+    repeated string usernames = 1;
 }
 
 message Chat {
@@ -35,7 +32,6 @@ message Message {
   google.protobuf.Timestamp created_at= 3;
 
 }
-
 
 message StoreRequest {
     ChatInfo chat = 1;
