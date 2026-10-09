@@ -14,7 +14,7 @@ FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=build /out/grpc_server /grpc_server
 
-EXPOSE 50301
+EXPOSE 50311
 
 USER nonroot:nonroot
 
