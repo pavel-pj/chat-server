@@ -5,6 +5,7 @@ import (
 	//"chat-server/internal/db/generated"
 	//"chat-server/internal/services"
 	config "chat-server/internal/grpc_server/config"
+	services "chat-server/internal/grpc_server/service"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -13,14 +14,8 @@ import (
 
 // App хранит ВСЕ зависимости приложения
 type App struct {
-	DB *pgxpool.Pool
-	//Queries  *generated.Queries
-	//Services *Service
+	Services services.Service
 }
-
-//type Service struct {
-//	Links *services.LinkService
-//}
 
 func NewApp(cfg config.Config) (*App, error) {
 	// Создаем пул соединений pgx
@@ -37,15 +32,9 @@ func NewApp(cfg config.Config) (*App, error) {
 		return nil, fmt.Errorf("SUPER ERROR failed to ping database: %w", err)
 	}
 
-	// Создаем queries (теперь совместимо!)
-	//queries := generated.New(pool)
-
-	//services := &Service{
-	//	Links: services.NewLinkService(queries),
-	//}
-
+	service := services.NewService(pool)
 	return &App{
-		DB: pool,
+		Services: service,
 		//Queries:  queries,
 		//Services: services,
 	}, nil
@@ -53,8 +42,8 @@ func NewApp(cfg config.Config) (*App, error) {
 
 // Close закрывает соединение с БД
 func (a *App) Close() error {
-	if a.DB != nil {
-		a.DB.Close()
+	if a.Services.Repository.DB != nil {
+		a.Services.Repository.DB.Close()
 	}
 	return nil
 }

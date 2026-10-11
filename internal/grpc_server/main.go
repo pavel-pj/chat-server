@@ -7,12 +7,15 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 
 	//	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"chat-server/internal/grpc_server/app"
 	"chat-server/internal/grpc_server/config"
+	"chat-server/internal/grpc_server/service"
 	desc "chat-server/pkg/chat_v1"
 )
 
@@ -23,19 +26,43 @@ import (
 
 type server struct {
 	desc.UnimplementedChatV1Server
+	svc service.Service
 }
 
 func (s *server) Store(ctx context.Context, req *desc.StoreRequest) (*desc.StoreResponse, error) {
 
 	users := req.GetChat().GetUsernames()
-	log.Println(users)
+	fmt.Println(len(users))
+	if len(users) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "No users provided!")
+	}
+
+	//log.Println(users)
+
+	id, err := s.svc.Store(ctx, users)
+	if err != nil {
+		log.Printf("store chat: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to store chat: %v", err)
+	}
 
 	return &desc.StoreResponse{
-		Id: int64(252),
+		Id: id,
 	}, nil
 
 }
 
+func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*desc.DeleteResponse, error) {
+
+	id := req.GetId()
+	fmt.Println("Delete id:", id)
+	err := s.svc.Delete(ctx, id)
+	if err != nil {
+		log.Printf("store chat: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to store chat: %v", err)
+	}
+	return &desc.DeleteResponse{}, nil
+
+}
 func main() {
 
 	cfg, err := config.Load()
@@ -63,7 +90,7 @@ func main() {
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterChatV1Server(s, &server{})
+	desc.RegisterChatV1Server(s, &server{svc: application.Services})
 
 	log.Printf("✅ Server up on port:%s", cfg.ServerPort)
 	if err = s.Serve(listener); err != nil {
