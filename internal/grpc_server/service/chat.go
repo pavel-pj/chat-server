@@ -1,26 +1,29 @@
 package service
 
 import (
-	repo "chat-server/internal/grpc_server/repository"
+	repository "chat-server/internal/grpc_server/repository"
+	chatRepository "chat-server/internal/grpc_server/repository/chat"
 	"context"
+
+	desc "chat-server/pkg/chat_v1"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Service struct {
-	Repository repo.Repository
+	Repository repository.ChatRepository
 }
 
 func NewService(DB *pgxpool.Pool) Service {
 
-	service := repo.NewRepository(DB)
+	service := chatRepository.NewRepository(DB)
 
 	return Service{
 		Repository: service,
 	}
 }
 
-func (s *Service) Store(ctx context.Context, users []string) (int64, error) {
+func (s *Service) Store(ctx context.Context, users *desc.ChatInfo) (int64, error) {
 
 	result, err := s.Repository.Store(ctx, users)
 	if err != nil {
@@ -36,4 +39,14 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 	}
 
 	return nil
+}
+
+func (s *Service) Get(ctx context.Context, id int64) (*desc.Chat, error) {
+
+	data, err := s.Repository.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

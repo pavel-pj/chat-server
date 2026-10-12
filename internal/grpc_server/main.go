@@ -37,9 +37,7 @@ func (s *server) Store(ctx context.Context, req *desc.StoreRequest) (*desc.Store
 		return nil, status.Error(codes.InvalidArgument, "No users provided!")
 	}
 
-	//log.Println(users)
-
-	id, err := s.svc.Store(ctx, users)
+	id, err := s.svc.Store(ctx, req.GetChat())
 	if err != nil {
 		log.Printf("store chat: %v", err)
 		return nil, status.Errorf(codes.Internal, "failed to store chat: %v", err)
@@ -48,6 +46,19 @@ func (s *server) Store(ctx context.Context, req *desc.StoreRequest) (*desc.Store
 	return &desc.StoreResponse{
 		Id: id,
 	}, nil
+
+}
+
+func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
+
+	id := req.GetId()
+	//fmt.Println(id)
+	data, err := s.svc.Get(ctx, id)
+	if err != nil {
+		log.Printf("store chat: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to get chat: %v", err)
+	}
+	return &desc.GetResponse{Chat: data}, nil
 
 }
 
@@ -63,6 +74,7 @@ func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*desc.Del
 	return &desc.DeleteResponse{}, nil
 
 }
+
 func main() {
 
 	cfg, err := config.Load()

@@ -11,6 +11,7 @@ option go_package = "chat-server/pkg/chat_v1;chat_v1";
 service ChatV1 {
     rpc Store(StoreRequest) returns (StoreResponse);
     rpc Delete(DeleteRequest) returns (DeleteResponse);
+    rpc Get(GetRequest) returns (GetResponse);
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
   }
  
@@ -38,6 +39,14 @@ message StoreRequest {
 }
 message StoreResponse {
     int64 id = 1;
+}
+
+message GetRequest {
+    int64 id = 1;
+   
+}
+message GetResponse {
+     Chat chat = 1;
 }
  
 

@@ -15,6 +15,7 @@ import (
 // App хранит ВСЕ зависимости приложения
 type App struct {
 	Services services.Service
+	Pool     *pgxpool.Pool
 }
 
 func NewApp(cfg config.Config) (*App, error) {
@@ -35,15 +36,12 @@ func NewApp(cfg config.Config) (*App, error) {
 	service := services.NewService(pool)
 	return &App{
 		Services: service,
-		//Queries:  queries,
-		//Services: services,
+		Pool:     pool,
 	}, nil
 }
 
 // Close закрывает соединение с БД
 func (a *App) Close() error {
-	if a.Services.Repository.DB != nil {
-		a.Services.Repository.DB.Close()
-	}
+	a.Pool.Close()
 	return nil
 }
