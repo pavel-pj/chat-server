@@ -2,8 +2,8 @@ package converter
 
 import (
 	//"chat-server/internal/grpc_server/repository/chat/model"
-	model "chat-server/internal/grpc_server/repository/chat/model"
-	desc "chat-server/pkg/chat_v1"
+	model "github.com/pavel-pj/go-chat/internal/repository/chat/model"
+	desc "github.com/pavel-pj/go-chat/pkg/chat_v1"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

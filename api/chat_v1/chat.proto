@@ -10,9 +10,9 @@ option go_package = "chat-server/pkg/chat_v1;chat_v1";
 
 service ChatV1 {
     rpc Store(StoreRequest) returns (StoreResponse);
-    rpc Delete(DeleteRequest) returns (DeleteResponse);
-    rpc Get(GetRequest) returns (GetResponse);
-    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+   // rpc Delete(DeleteRequest) returns (DeleteResponse);
+   // rpc Get(GetRequest) returns (GetResponse);
+   // rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
   }
  
 
@@ -27,12 +27,6 @@ message Chat {
     google.protobuf.Timestamp updated_at= 4;
 }
 
-message Message {
-  string from = 1;
-  string text = 2;
-  google.protobuf.Timestamp created_at= 3;
-
-}
 
 message StoreRequest {
     ChatInfo chat = 1;
@@ -40,6 +34,14 @@ message StoreRequest {
 message StoreResponse {
     int64 id = 1;
 }
+
+message Message {
+  string from = 1;
+  string text = 2;
+  google.protobuf.Timestamp created_at= 3;
+
+}
+ 
 
 message GetRequest {
     int64 id = 1;

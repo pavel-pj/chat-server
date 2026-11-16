@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	repo "chat-server/internal/grpc_server/repository"
-	"chat-server/internal/grpc_server/repository/chat/converter"
-	model "chat-server/internal/grpc_server/repository/chat/model"
-	desc "chat-server/pkg/chat_v1"
+	repo "github.com/pavel-pj/go-chat/internal/repository"
+	desc "github.com/pavel-pj/go-chat/pkg/chat_v1"
+	db "github.com/pavel-pj/platform_lib/pkg/client/db"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -21,46 +19,59 @@ const (
 	updatedAtColumn = "updated_at"
 )
 
-type Repository struct {
-	DB *pgxpool.Pool
+type ChatRepository struct {
+	db db.Client
 }
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-func NewRepository(DB *pgxpool.Pool) repo.ChatRepository {
-	return &Repository{
-		DB: DB,
+func NewChatRepository(db db.Client) repo.ChatRepository {
+	return &ChatRepository{
+		db: db,
 	}
 }
 
-func (r *Repository) Store(ctx context.Context, users *desc.ChatInfo) (int64, error) {
+func (r *ChatRepository) Store(ctx context.Context, users *desc.ChatInfo) (int64, error) {
 
-	var chatID int64
-	err := r.DB.QueryRow(ctx, `INSERT INTO chats DEFAULT VALUES RETURNING id`).Scan(&chatID)
+	sqlStr, args, err := psql.Insert(tableName).
+		Columns(idColumn).
+		Values(sq.Expr("DEFAULT")).
+		Suffix("RETURNING ID").
+		ToSql()
+
+	q := db.Query{
+		Name:     "chat_repository.store",
+		QueryRow: sqlStr,
+	}
+
+	var id int64
+	err = r.db.DB().ScanOneContext(ctx, &id, q, args...)
 	if err != nil {
 		return 0, fmt.Errorf("failed to insert chat: %w", err)
 	}
+	/*
 
-	insert := psql.Insert("chat_users").Columns("chat_id", "user_name")
+		insert := psql.Insert("chat_users").Columns("chat_id", "user_name")
 
-	fmt.Println(users)
-	for _, user := range users.Usernames {
-		insert = insert.Values(chatID, user)
-	}
+		fmt.Println(users)
+		for _, user := range users.Usernames {
+			insert = insert.Values(chatID, user)
+		}
 
-	sqlStr, args, err := insert.ToSql()
-	if err != nil {
-		return 0, fmt.Errorf("failed to insert users: %w", err)
-	}
+		sqlStr, args, err := insert.ToSql()
+		if err != nil {
+			return 0, fmt.Errorf("failed to insert users: %w", err)
+		}
 
-	_, err = r.DB.Exec(ctx, sqlStr, args...)
-	if err != nil {
-		return 0, fmt.Errorf("failed to build chat_users query: %w", err)
-	}
-
-	return chatID, nil
+		_, err = r.DB.Exec(ctx, sqlStr, args...)
+		if err != nil {
+			return 0, fmt.Errorf("failed to build chat_users query: %w", err)
+		}
+	*/
+	return id, nil
 }
 
+/*
 func (r *Repository) Delete(ctx context.Context, id int64) error {
 
 	// first delete rows from chat_users
@@ -108,9 +119,9 @@ func (r *Repository) Get(ctx context.Context, id int64) (*desc.Chat, error) {
 		ToSql()
 
 	if err != nil {
-		if err != nil {
-			return nil, fmt.Errorf("failed to build get-chat query: %w", err)
-		}
+
+		return nil, fmt.Errorf("failed to build get-chat query: %w", err)
+
 	}
 	var chat model.Chat
 	err = r.DB.QueryRow(ctx, sqlStr, args...).
@@ -126,3 +137,4 @@ func (r *Repository) Get(ctx context.Context, id int64) (*desc.Chat, error) {
 
 	return converter.ToChatFromRepo(&chat), nil
 }
+*/

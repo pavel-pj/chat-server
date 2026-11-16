@@ -2,28 +2,32 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/reflection"
-	"google.golang.org/grpc/status"
-
-	//	"google.golang.org/protobuf/types/known/timestamppb"
-
-	"chat-server/internal/grpc_server/app"
-	"chat-server/internal/grpc_server/config"
-	"chat-server/internal/grpc_server/service"
-	desc "chat-server/pkg/chat_v1"
+	a "github.com/pavel-pj/go-chat/internal/app"
 )
+
+func main() {
+
+	ctx := context.Background()
+
+	app, err := a.NewApp(ctx)
+	if err != nil {
+		log.Fatalf("Fail to init app:%v", err)
+	}
+
+	err = app.Run()
+	if err != nil {
+		log.Fatalf("Fail to start app:%v", err)
+	}
+
+}
 
 //const (
 //	port   = 50311
 //	DbInfo = "host=localhost port=5090 user=chat password=1Pfem&dnX2 dbname=mydb sslmode=disable"
 //)
-
+/*
 type server struct {
 	desc.UnimplementedChatV1Server
 	svc service.Service
@@ -110,3 +114,4 @@ func main() {
 	}
 
 }
+*/
