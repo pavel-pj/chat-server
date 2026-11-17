@@ -17,3 +17,7 @@ type VaultConfig interface {
 	SecretPath() string
 	TLSServerName() string
 }
+
+type AuthConfig interface {
+	Address() string
+}

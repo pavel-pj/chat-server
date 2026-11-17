@@ -15,6 +15,7 @@ type GRPCConfig struct {
 func NewGRPCConfig() (GRPCConfig, error) {
 	// Загружаем .env файл
 	if err := godotenv.Load(); err != nil {
+		//log.Fatal("Warning: .env file not found, using environment variables")
 		log.Println("Warning: .env file not found, using environment variables")
 	}
 

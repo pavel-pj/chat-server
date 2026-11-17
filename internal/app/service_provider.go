@@ -26,6 +26,7 @@ import (
 
 type serviceProvider struct {
 	pgConfig    config.PGConfig
+	authConfig  config.AuthConfig
 	grpcConfig  config.GRPCConfig
 	vaultConfig config.VaultConfig
 
@@ -68,6 +69,19 @@ func (s *serviceProvider) GetGRPCConfig() config.GRPCConfig {
 	}
 
 	return s.grpcConfig
+}
+
+func (s *serviceProvider) GetAuthConfig() config.AuthConfig {
+
+	if s.authConfig == nil {
+		conf, err := env.NewAuthConfig()
+		if err != nil {
+			log.Fatalf("failed to get grpc config: %s", err.Error())
+		}
+		s.authConfig = conf
+	}
+
+	return s.authConfig
 }
 
 func (s *serviceProvider) GetVaultConfig() config.VaultConfig {
