@@ -19,6 +19,12 @@ type Config struct {
 	Mount      string
 	SecretPath string
 	ServerName string
+
+	PKIMount      string
+	PKIRole       string
+	PKICommonName string
+	PKITTL        string
+	RootCAFile    string
 }
 
 type TLS struct {
@@ -101,6 +107,7 @@ func newClient(ctx context.Context, cfg Config) (*api.Client, error) {
 		}
 
 		client.SetToken(login.Auth.ClientToken)
+
 		return client, nil
 	}
 

@@ -13,11 +13,15 @@ type VaultConfig interface {
 	Token() string
 	RoleID() string
 	SecretID() string
-	KVMount() string
-	SecretPath() string
-	TLSServerName() string
+
+	PKIMount() string
+	PKIRole() string
+	PKICommonName() string
+	PKITTL() string
+	RootCAFile() string
 }
 
 type AuthConfig interface {
 	Address() string
+	TLSServerName() string
 }

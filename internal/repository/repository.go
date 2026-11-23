@@ -9,5 +9,5 @@ import (
 type ChatRepository interface {
 	Store(ctx context.Context, users *desc.ChatInfo) (int64, error)
 	//Delete(ctx context.Context, id int64) error
-	//Get(ctx context.Context, id int64) (*desc.Chat, error)
+	Get(ctx context.Context, id int64) (*desc.Chat, error)
 }

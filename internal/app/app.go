@@ -7,7 +7,9 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/pavel-pj/go-chat/internal/authclient"
 	"github.com/pavel-pj/go-chat/internal/config/env"
+	"github.com/pavel-pj/go-chat/internal/interceptor"
 	"github.com/pavel-pj/go-chat/internal/vault"
 	desc "github.com/pavel-pj/go-chat/pkg/chat_v1"
 	"github.com/pavel-pj/platform_lib/pkg/closer"
@@ -25,6 +27,7 @@ type App struct {
 	httpServer      *http.Server
 	swaggerServer   *http.Server
 	vault           *vault.Secret
+	authClient      *authclient.Client
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -60,6 +63,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initConfig,
 		a.initServiceProvider,
 		a.initVault,
+		a.initAuthClient,
 		a.initGRPCServer,
 		//a.initHTTPServer,
 		//a.initSwaggerServer,
@@ -90,22 +94,31 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initVault(ctx context.Context) error {
+
 	cfg := a.serviceProvider.GetVaultConfig()
 
-	certs, err := vault.Load(ctx, vault.Config{
-		Address:    cfg.Address(),
-		Token:      cfg.Token(),
-		RoleID:     cfg.RoleID(),
-		SecretID:   cfg.SecretID(),
-		Mount:      cfg.KVMount(),
-		SecretPath: cfg.SecretPath(),
-		ServerName: cfg.TLSServerName(),
+	tlsConfig, err := vault.LoadPKI(ctx, vault.Config{
+		Address:  cfg.Address(),
+		Token:    cfg.Token(),
+		RoleID:   cfg.RoleID(),
+		SecretID: cfg.SecretID(),
+
+		ServerName: cfg.PKICommonName(),
+
+		PKIMount:      cfg.PKIMount(),
+		PKIRole:       cfg.PKIRole(),
+		PKICommonName: cfg.PKICommonName(),
+		PKITTL:        cfg.PKITTL(),
+		RootCAFile:    cfg.RootCAFile(),
 	})
+
 	if err != nil {
-		return fmt.Errorf("init vault: %w", err)
+		return fmt.Errorf("init vault pki: %w", err)
 	}
 
-	a.vault = certs
+	a.vault = &vault.Secret{
+		TLS: tlsConfig,
+	}
 
 	return nil
 }
@@ -115,9 +128,10 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(a.vault.TLS.ServerTLS)),
 		//grpc.WithTransportCredentials(insecure.NewCredentials()),
-		//grpc.ChainUnaryInterceptor(
-		//	interceptor.ValidateInterceptor,
-		//	interceptor.RecoveryInterceptor),
+		grpc.ChainUnaryInterceptor(
+			interceptor.Auth(a.authClient),
+			interceptor.RecoveryInterceptor,
+		),
 	)
 	// Только для тестовой среды - для удобства работы в Postman
 	reflection.Register(a.grpcServer)
@@ -129,6 +143,27 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	closer.Add(func() error {
 		a.grpcServer.GracefulStop()
 		return nil
+	})
+
+	return nil
+}
+
+func (a *App) initAuthClient(_ context.Context) error {
+	cfg := a.serviceProvider.GetAuthConfig()
+
+	client, err := authclient.New(authclient.Config{
+		Address:    cfg.Address(),
+		ServerName: cfg.TLSServerName(),
+		RootCAs:    a.vault.TLS.CAPool,
+	})
+	if err != nil {
+		return fmt.Errorf("init auth client: %w", err)
+	}
+
+	a.authClient = client
+
+	closer.Add(func() error {
+		return a.authClient.Close()
 	})
 
 	return nil
