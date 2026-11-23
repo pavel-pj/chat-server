@@ -3,14 +3,14 @@ package chat
 import (
 	"context"
 
-	desc "github.com/pavel-pj/go-chat/pkg/chat_v1"
+	"github.com/pavel-pj/go-chat/internal/model"
 )
 
-func (s ChatService) Get(ctx context.Context, id int64) (*desc.Chat, error) {
+func (s ChatService) Get(ctx context.Context, id int64) (model.Chat, error) {
 
 	data, err := s.Repository.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return model.Chat{}, err
 	}
 
 	return data, nil

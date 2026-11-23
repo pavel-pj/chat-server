@@ -1,33 +1,22 @@
 package converter
 
 import (
-	//"chat-server/internal/grpc_server/repository/chat/model"
 	"github.com/pavel-pj/go-chat/internal/model"
-	repoModel "github.com/pavel-pj/go-chat/internal/repository/chat/model"
+	desc "github.com/pavel-pj/go-chat/pkg/chat_v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func FromChatRepoToService(chat repoModel.Chat) model.Chat {
+func FromChatServiceToApi(chat model.Chat) *desc.GetResponse {
 
-	return model.Chat{
-		ID:        chat.ID,
-		CreatedAt: chat.CreatedAt,
-		UpdatedAt: chat.UpdatedAt,
-	}
-	/*
-		var updatedAd *timestamppb.Timestamp
-
-		if chat.UpdatedAt.Valid {
-			updatedAd = timestamppb.New(chat.UpdatedAt.Time)
-		}
-
-		var result desc.Chat
-		result = desc.Chat{
-			Id:        chat.ID,
+	return &desc.GetResponse{
+		Chat: &desc.Chat{
+			Id: chat.ID,
+			Chat: &desc.ChatInfo{
+				Usernames: []string{"test1", "test2"},
+			},
 			CreatedAt: timestamppb.New(chat.CreatedAt),
-			UpdatedAt: updatedAd,
-		}
-
-		return &result
-	*/
+			UpdatedAt: timestamppb.New(chat.UpdatedAt),
+		},
+	}
 
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	converter "github.com/pavel-pj/go-chat/internal/converter/chat"
 	desc "github.com/pavel-pj/go-chat/pkg/chat_v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,10 +21,6 @@ func (s *ChatImplementation) Get(ctx context.Context, req *desc.GetRequest) (*de
 		return nil, status.Errorf(codes.Internal, "failed to store chat: %v", err)
 	}
 
-	chat
-
-	return &desc.GetResponse{
-		Id: id,
-	}, nil
+	return converter.FromChatServiceToApi(chat), nil
 
 }
