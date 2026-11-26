@@ -1,1 +1,5 @@
 bin/
+vendor.protogen
+/certs
+/.env
+/logs/app.log

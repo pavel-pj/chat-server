@@ -10,6 +10,8 @@ import (
 	"github.com/pavel-pj/go-chat/internal/authclient"
 	"github.com/pavel-pj/go-chat/internal/config/env"
 	"github.com/pavel-pj/go-chat/internal/interceptor"
+	"github.com/pavel-pj/go-chat/internal/logger"
+	"github.com/pavel-pj/go-chat/internal/tracing"
 	"github.com/pavel-pj/go-chat/internal/vault"
 	desc "github.com/pavel-pj/go-chat/pkg/chat_v1"
 	"github.com/pavel-pj/platform_lib/pkg/closer"
@@ -63,6 +65,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initConfig,
 		a.initServiceProvider,
 		a.initVault,
+		a.initTracing,
 		a.initAuthClient,
 		a.initGRPCServer,
 		//a.initHTTPServer,
@@ -125,12 +128,18 @@ func (a *App) initVault(ctx context.Context) error {
 
 func (a *App) initGRPCServer(ctx context.Context) error {
 
+	///logger.Init(a.serviceProvider.GetLoggerConfig())
+	//tracing.Init(logger.Logger(), serviceName)
+
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(a.vault.TLS.ServerTLS)),
 		//grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.ChainUnaryInterceptor(
+			interceptor.ServerTraicingInterceptor,
 			interceptor.Auth(a.authClient),
+
 			interceptor.RecoveryInterceptor,
+			interceptor.LoggerInterceptor,
 		),
 	)
 	// Только для тестовой среды - для удобства работы в Postman
@@ -145,6 +154,15 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		return nil
 	})
 
+	return nil
+}
+
+func (a *App) initTracing(_ context.Context) error {
+
+	serviceName := "chat-service"
+
+	logger.Init(a.serviceProvider.GetLoggerConfig())
+	tracing.Init(logger.Logger(), serviceName)
 	return nil
 }
 
@@ -176,6 +194,7 @@ func (a *App) runGRPCServer() error {
 		return err
 	}
 	log.Printf("GRPC Server is running in %s", a.serviceProvider.GetGRPCConfig().Address())
+	log.Printf("jaeger UI is running on 16686 port")
 	err = a.grpcServer.Serve(list)
 	if err != nil {
 		return err

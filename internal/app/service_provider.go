@@ -25,10 +25,11 @@ import (
 )
 
 type serviceProvider struct {
-	pgConfig    config.PGConfig
-	authConfig  config.AuthConfig
-	grpcConfig  config.GRPCConfig
-	vaultConfig config.VaultConfig
+	pgConfig     config.PGConfig
+	authConfig   config.AuthConfig
+	grpcConfig   config.GRPCConfig
+	loggerConfig config.LoggerConfig
+	vaultConfig  config.VaultConfig
 
 	//pgPool *pgxpool.Pool
 	pgClient db.Client
@@ -94,6 +95,18 @@ func (s *serviceProvider) GetVaultConfig() config.VaultConfig {
 	}
 
 	return s.vaultConfig
+}
+
+func (s *serviceProvider) GetLoggerConfig() config.LoggerConfig {
+	if s.loggerConfig == nil {
+		conf, err := env.NewLoggerConfig()
+		if err != nil {
+			log.Fatalf("failed to get logger config: %s", err.Error())
+		}
+		s.loggerConfig = conf
+	}
+
+	return s.loggerConfig
 }
 
 func (s *serviceProvider) GetDBClient(ctx context.Context) db.Client {

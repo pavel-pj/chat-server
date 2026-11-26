@@ -25,3 +25,11 @@ type AuthConfig interface {
 	Address() string
 	TLSServerName() string
 }
+
+type LoggerConfig interface {
+	Level() string
+	Filename() string
+	MaxSize() int
+	MaxBackups() int
+	MaxAge() int
+}

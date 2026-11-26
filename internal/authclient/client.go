@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/opentracing/opentracing-go"
 	accessv1 "github.com/pavel-pj/auth/pkg/access_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -33,6 +35,9 @@ func New(cfg Config) (*Client, error) {
 		cfg.Address,
 		grpc.WithTransportCredentials(
 			credentials.NewTLS(tlsConfig),
+		),
+		grpc.WithChainUnaryInterceptor(
+			otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer()),
 		),
 	)
 	if err != nil {
